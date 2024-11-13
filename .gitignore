@@ -1,1 +1,98 @@
-/venv
+# General
+.DS_Store
+*.log
+*.tmp
+*.local
+*.env
+.vscode/
+.idea/
+*.swp
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# React Native
+# React Native specific folders and files
+.expo/
+.expo-shared/
+ios/Pods/
+*.pbxproj
+*.xcworkspace
+android/.gradle/
+android/app/build/
+android/build/
+android/.idea/
+android/local.properties
+android/gradlew
+android/gradlew.bat
+android/app/src/main/jniLibs/
+*.keystore
+
+# Build files
+build/
+dist/
+out/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pkl
+*.egg-info/
+*.eggs/
+*.pytest_cache/
+pip-log.txt
+htmlcov/
+.coverage
+.tox/
+.cache/
+.mypy_cache/
+celerybeat-schedule
+*.db
+*.sqlite3
+
+# FastAPI and virtual environment
+.env
+*.sqlite3
+venv/
+.venv/
+env/
+ENV/
+venv.bak/
+instance/
+
+# Pytest
+.pytest_cache/
+coverage/
+.coverage.*
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Mac/Linux/Windows specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Compiled source files
+*.out
+*.o
+*.so
+*.dylib
+*.dll
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite3
+
+# Miscellaneous files
+*.bak
+*.old
+*.swp
