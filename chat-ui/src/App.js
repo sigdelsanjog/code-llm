@@ -5,7 +5,8 @@ import './App.css';
 function App() {
   return (
     <div className="App">
-      <h1>Chat with AI</h1>
+      <h1>Multi-Model Code Generator</h1>
+      <p>Generate code using multiple AI models simultaneously</p>
       <ChatBox />
     </div>
   );

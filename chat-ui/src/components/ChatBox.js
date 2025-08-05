@@ -5,25 +5,31 @@ import axios from "axios";
 
 const ChatBox = () => {
   const [prompt, setPrompt] = useState(""); // Holds the user input
-  const [response, setResponse] = useState(""); // Holds the API response
+  const [response, setResponse] = useState(null); // Holds the API response object
+  const [loading, setLoading] = useState(false); // Loading state
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setResponse(""); // Clear previous response
+    setResponse(null); // Clear previous response
+    setLoading(true); // Set loading state
 
     try {
       // Send the prompt to the backend FastAPI
       const result = await axios.post("http://localhost:8000/generate-code", { prompt });
 
       // Log the API response (optional for debugging)
-      console.log("API Response:", result.data.generated_code);
+      console.log("API Response:", result.data);
 
       // Set the response state with the data from the backend
-      setResponse(result.data.generated_code); // Updated to access 'generated_code'
-      console.log("Response state updated:", result.data.generated_code); // Debug log
+      setResponse(result.data); // Store the full response object
     } catch (error) {
       console.error("Error fetching response:", error);
-      setResponse("There was an error processing your request.");
+      setResponse({
+        error: true,
+        message: "There was an error processing your request."
+      });
+    } finally {
+      setLoading(false); // Clear loading state
     }
   };
 
@@ -35,14 +41,41 @@ const ChatBox = () => {
           placeholder="Enter your prompt here..."
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)} // Update prompt as user types
+          disabled={loading}
         />
-        <button type="submit">Submit</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Processing..." : "Submit"}
+        </button>
       </form>
 
       {/* Display the API response */}
       <div className="response">
-        {response ? (
-          <p>{response}</p> // Render the API response inside a <p> tag
+        {loading ? (
+          <p>Loading responses from models...</p>
+        ) : response ? (
+          response.error ? (
+            <p className="error">{response.message}</p>
+          ) : (
+            <div className="results-container">
+              <h3>Prompt: {response.prompt}</h3>
+              <table className="results-table">
+                <thead>
+                  <tr>
+                    <th>Model Name</th>
+                    <th>Response</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {response.model_responses && response.model_responses.map((modelResponse, index) => (
+                    <tr key={index}>
+                      <td className="model-name">{modelResponse.model}</td>
+                      <td className="model-response">{modelResponse.response}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
         ) : (
           <p>No response yet. Please submit a prompt.</p> // Show default message when no response
         )}
