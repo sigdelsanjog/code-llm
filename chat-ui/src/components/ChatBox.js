@@ -33,14 +33,25 @@ const ChatBox = () => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    // Check if Ctrl+Enter is pressed
+    if (e.ctrlKey && e.key === 'Enter') {
+      e.preventDefault(); // Prevent default behavior (new line)
+      if (!loading && prompt.trim()) {
+        handleSubmit(e);
+      }
+    }
+  };
+
   return (
     <div className="chat-container">
       {/* Input form for the prompt */}
       <form onSubmit={handleSubmit}>
         <textarea
-          placeholder="Enter your prompt here..."
+          placeholder="Enter your prompt here... (Press Ctrl+Enter to submit)"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)} // Update prompt as user types
+          onKeyDown={handleKeyDown} // Handle Ctrl+Enter
           disabled={loading}
         />
         <button type="submit" disabled={loading}>
