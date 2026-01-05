@@ -39,8 +39,10 @@ out/
 
 # Python
 __pycache__/
+backend/__pycache__/
 *.py[cod]
 *.pyc
+*/*.pyc
 *.pyo
 *.pyd
 *.pkl
