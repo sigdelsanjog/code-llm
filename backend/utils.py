@@ -2,14 +2,14 @@
 from transformers import pipeline
 import asyncio
 import concurrent.futures
-from typing import Dict, List
+from typing import Dict, List, Optional
 import os
+from config import MODEL_CONFIGS
 
 # Define model configurations using local paths
 model_configs = {
-    "DistilGPT2": {"task": "text-generation", "model": "models/distilgpt2"},
-    "GPT2-Tiny": {"task": "text-generation", "model": "models/tiny-gpt2"},
-    "T5-Tiny": {"task": "text2text-generation", "model": "models/t5-efficient-tiny"}
+    model_id: {"task": config["task"], "model": config["model_path"]}
+    for model_id, config in MODEL_CONFIGS.items()
 }
 
 # Global variable to store loaded models
