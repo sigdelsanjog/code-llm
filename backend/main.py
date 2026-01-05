@@ -1,9 +1,13 @@
 # main.py
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware  # Import CORSMiddleware
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, List, Optional
-from utils import generate_pandas_code, generate_with_model
+import asyncio
+import concurrent.futures
+
+# Import services (Dependency Inversion Principle - depend on abstractions)
+from services import ServiceFactory, BaseModelService
 from config import get_available_models
 
 
@@ -40,32 +44,58 @@ async def get_models():
 
 @app.post("/generate-code", response_model=GeneratedCodeResponse)
 async def generate_code(request: PromptRequest):
+    """
+    Generate code using model services with dependency injection.
+    
+    If model_name is specified, uses that specific service.
+    Otherwise, uses all available services.
+    """
     try:
-        # If a specific model is requested, use only that model
+        # Dependency Injection: Get appropriate service(s) based on request
         if request.model_name:
-            result = generate_with_model(request.model_name, request.prompt)
+            # Inject single service for specific model
+            service = ServiceFactory.get_service(request.model_name)
+            result = service.generate(request.prompt)
             model_responses = [ModelResponse(model=result["model"], response=result["response"])]
             formatted_response = f"**{result['model']} Response:**\n{result['response']}\n"
         else:
-            # Use the util function to process the prompt and generate code from all models
-            results = await generate_pandas_code(request.prompt)
+            # Inject all services for "All Models" option
+            services = ServiceFactory.get_all_services()
             
-            # Format the responses into paragraphs
-            formatted_paragraphs = []
-            model_responses = []
-            
-            for result in results["responses"]:
-                model_name = result["model"]
-                response = result["response"]
+            # Execute all services in parallel for better performance
+            with concurrent.futures.ThreadPoolExecutor(max_workers=len(services)) as executor:
+                # Submit all service generation tasks
+                future_to_service = {
+                    executor.submit(service.generate, request.prompt): service
+                    for service in services
+                }
                 
-                # Create paragraph for each model
-                paragraph = f"**{model_name} Response:**\n{response}\n"
-                formatted_paragraphs.append(paragraph)
+                # Collect results as they complete
+                model_responses = []
+                formatted_paragraphs = []
                 
-                # Add to model responses
-                model_responses.append(ModelResponse(model=model_name, response=response))
+                for future in concurrent.futures.as_completed(future_to_service):
+                    try:
+                        result = future.result()
+                        model_responses.append(
+                            ModelResponse(model=result["model"], response=result["response"])
+                        )
+                        formatted_paragraphs.append(
+                            f"**{result['model']} Response:**\n{result['response']}\n"
+                        )
+                    except Exception as e:
+                        service = future_to_service[future]
+                        error_result = {
+                            "model": service.get_model_name(),
+                            "response": f"Error: {str(e)}"
+                        }
+                        model_responses.append(
+                            ModelResponse(model=error_result["model"], response=error_result["response"])
+                        )
+                        formatted_paragraphs.append(
+                            f"**{error_result['model']} Response:**\n{error_result['response']}\n"
+                        )
             
-            # Join all paragraphs
             formatted_response = "\n".join(formatted_paragraphs)
         
         return GeneratedCodeResponse(
@@ -73,5 +103,8 @@ async def generate_code(request: PromptRequest):
             model_responses=model_responses,
             formatted_response=formatted_response
         )
+    except ValueError as e:
+        # Handle invalid model name
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating code: {str(e)}")
