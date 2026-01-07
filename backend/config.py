@@ -60,6 +60,12 @@ class Config:
                 "model_path": "models/t5-efficient-tiny",
                 "display_name": "T5-Tiny",
                 "description": "Tiny T5 model for text-to-text generation"
+            },
+            "MedQuAD-Custom": {
+                "task": "text-generation",
+                "model_path": "models/medquad-custom",
+                "display_name": "MedQuAD Custom (My Trained Model)",
+                "description": "Custom GPT model trained from scratch on MedQuAD medical Q&A dataset"
             }
         }
         

@@ -12,6 +12,7 @@ from .base_service import BaseModelService
 from .distilgpt2_service import DistilGPT2Service
 from .gpt2_tiny_service import GPT2TinyService
 from .t5_tiny_service import T5TinyService
+from .medquad_custom_service import MedQuADCustomService
 
 
 class ServiceFactory:
@@ -27,7 +28,8 @@ class ServiceFactory:
     _service_registry: Dict[str, type] = {
         "DistilGPT2": DistilGPT2Service,
         "GPT2-Tiny": GPT2TinyService,
-        "T5-Tiny": T5TinyService
+        "T5-Tiny": T5TinyService,
+        "MedQuAD-Custom": MedQuADCustomService
     }
     
     @classmethod
