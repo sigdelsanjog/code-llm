@@ -10,10 +10,6 @@ from typing import Dict
 import torch
 import sentencepiece as spm
 from pathlib import Path
-import sys
-
-# Add parent directory to access medllm package
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from .base_service import BaseModelService
 from config import get_model_config
@@ -47,8 +43,8 @@ class MedQuADCustomService(BaseModelService):
             checkpoint = torch.load(model_path, map_location=self._device)
             
             # Reconstruct model from saved config
-            from medllm.model.architecture import GPTTransformer
-            from medllm.model.configs.model_config import ModelConfig
+            from llm_med.model.architecture import GPTTransformer
+            from llm_med.model.configs.model_config import ModelConfig
             
             model_config = ModelConfig(**checkpoint['model_config'])
             self._model = GPTTransformer(model_config)
