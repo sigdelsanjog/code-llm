@@ -13,10 +13,10 @@ import torch
 from pathlib import Path
 
 # Import from llm-med package v0.2.0
-from llm_med.model.architecture import GPTTransformer
-from llm_med.model.configs.model_config import ModelConfig
-from llm_med.inference.generator import TextGenerator
-from llm_med.inference.generation_config import GenerationConfig
+from gptgpt.model.architecture import GPTTransformer
+from gptgpt.model.configs.model_config import ModelConfig
+from gptgpt.inference.generator import TextGenerator
+from gptgpt.inference.generation_config import GenerationConfig
 import sentencepiece as spm
 
 from .base_service import BaseModelService
