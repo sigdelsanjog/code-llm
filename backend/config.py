@@ -61,11 +61,11 @@ class Config:
                 "display_name": "T5-Tiny",
                 "description": "Tiny T5 model for text-to-text generation"
             },
-            "MedQuAD-Custom": {
+            "GptGpt": {
                 "task": "text-generation",
-                "model_path": "models/medquad-custom",
-                "display_name": "MedQuAD Custom (My Trained Model)",
-                "description": "Custom GPT model trained from scratch on MedQuAD medical Q&A dataset"
+                "model_path": "models/gptgpt",
+                "display_name": "GptGpt Custom",
+                "description": "Custom GPT model trained using gptgpt package from PyPI"
             }
         }
         

@@ -1,11 +1,11 @@
 """
-MedQuAD Custom Model Service.
+GptGpt Custom Model Service.
 
-Custom GPT model trained from scratch on MedQuAD dataset.
-This service integrates the user's custom-trained medical language model
+Custom GPT model trained from scratch using gptgpt package.
+This service integrates the user's custom-trained language model
 into the backend API following SOLID principles.
 
-Now uses the llm-med package from PyPI.
+Now uses the gptgpt package from PyPI.
 """
 
 from typing import Dict
@@ -23,28 +23,28 @@ from .base_service import BaseModelService
 from config import get_model_config
 
 
-class MedQuADCustomService(BaseModelService):
+class GptGptService(BaseModelService):
     """
-    Service class for custom MedQuAD GPT model.
+    Service class for custom GptGpt model.
     Handles loading and inference for the user's trained model.
     """
     
     def __init__(self):
-        """Initialize the MedQuAD Custom service and load the model."""
+        """Initialize the GptGpt service and load the model."""
         self._generator = None
         self._device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self._model_name = "MedQuAD-Custom"
+        self._model_name = "GptGpt"
         self._config = get_model_config(self._model_name)
         self._load_model()
     
     def _load_model(self):
         """
-        Load the custom GPT model and tokenizer using llm-med package.
+        Load the custom GPT model and tokenizer using gptgpt package.
         Private method following encapsulation principle.
         """
         try:
-            model_path = Path(self._config["model_path"]) / "best_model.pt"
-            tokenizer_path = Path(self._config["model_path"]) / "medquad_tokenizer.model"
+            model_path = Path(self._config["model_path"]) / "gptgpt_model.pt"
+            tokenizer_path = Path(self._config["model_path"]) / "gptgpt_tokenizer.model"
             
             # Check if files exist
             if not model_path.exists():
@@ -55,7 +55,7 @@ class MedQuADCustomService(BaseModelService):
             # Load checkpoint
             checkpoint = torch.load(model_path, map_location=self._device)
             
-            # Reconstruct model from saved config using llm-med package
+            # Reconstruct model from saved config using gptgpt package
             model_config = ModelConfig(**checkpoint['model_config'])
             model = GPTTransformer(model_config)
             model.load_state_dict(checkpoint['model_state_dict'])
@@ -66,14 +66,14 @@ class MedQuADCustomService(BaseModelService):
             tokenizer = spm.SentencePieceProcessor()
             tokenizer.load(str(tokenizer_path))
             
-            # Create generator using llm-med package
+            # Create generator using gptgpt package
             self._generator = TextGenerator(
                 model=model,
                 tokenizer=tokenizer,
                 device=self._device
             )
             
-            print(f"✓ Successfully loaded {self._model_name} using llm-med package")
+            print(f"✓ Successfully loaded {self._model_name} using gptgpt package")
             print(f"  - Trained steps: {checkpoint.get('step', 'unknown')}")
             print(f"  - Validation loss: {checkpoint.get('val_loss', 'unknown'):.4f}")
             print(f"  - Device: {self._device}")
@@ -86,7 +86,7 @@ class MedQuADCustomService(BaseModelService):
     
     def generate(self, prompt: str) -> Dict[str, str]:
         """
-        Generate medical text using custom MedQuAD model via llm-med package.
+        Generate text using custom GptGpt model via gptgpt package.
         
         Args:
             prompt: Input text prompt
@@ -101,11 +101,11 @@ class MedQuADCustomService(BaseModelService):
                     "response": f"Model {self._model_name} failed to load or is not available"
                 }
             
-            # Use the generator from llm-med package
-            # Conservative generation settings for medical accuracy
+            # Use the generator from gptgpt package
+            # Conservative generation settings for quality
             gen_config = GenerationConfig(
                 max_length=150,
-                temperature=0.6,  # Conservative for medical accuracy
+                temperature=0.6,  # Conservative for quality
                 top_k=40,
                 top_p=0.9,
                 repetition_penalty=1.2,
