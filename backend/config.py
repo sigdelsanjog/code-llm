@@ -61,11 +61,11 @@ class Config:
                 "display_name": "T5-Tiny",
                 "description": "Tiny T5 model for text-to-text generation"
             },
-            "GptGpt": {
+            "GptMed": {
                 "task": "text-generation",
-                "model_path": "models/gptgpt",
-                "display_name": "GptGpt Custom",
-                "description": "Custom GPT model trained using gptgpt package from PyPI"
+                "model_path": "models/gptmed",
+                "display_name": "GptMed Custom",
+                "description": "Custom GPT model trained using gptmed package from PyPI"
             }
         }
         

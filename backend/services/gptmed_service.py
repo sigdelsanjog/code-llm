@@ -1,11 +1,11 @@
 """
-GptGpt Custom Model Service.
+GptMed Custom Model Service.
 
-Custom GPT model trained from scratch using gptgpt package.
+Custom GPT model trained from scratch using gptmed package.
 This service integrates the user's custom-trained language model
 into the backend API following SOLID principles.
 
-Now uses the gptgpt package from PyPI.
+Now uses the gptmed package from PyPI.
 """
 
 from typing import Dict
@@ -13,38 +13,38 @@ import torch
 from pathlib import Path
 
 # Import from llm-med package v0.2.0
-from gptgpt.model.architecture import GPTTransformer
-from gptgpt.model.configs.model_config import ModelConfig
-from gptgpt.inference.generator import TextGenerator
-from gptgpt.inference.generation_config import GenerationConfig
+from gptmed.model.architecture import GPTTransformer
+from gptmed.model.configs.model_config import ModelConfig
+from gptmed.inference.generator import TextGenerator
+from gptmed.inference.generation_config import GenerationConfig
 import sentencepiece as spm
 
 from .base_service import BaseModelService
 from config import get_model_config
 
 
-class GptGptService(BaseModelService):
+class GptMedService(BaseModelService):
     """
-    Service class for custom GptGpt model.
+    Service class for custom GptMed model.
     Handles loading and inference for the user's trained model.
     """
     
     def __init__(self):
-        """Initialize the GptGpt service and load the model."""
+        """Initialize the GptMed service and load the model."""
         self._generator = None
         self._device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self._model_name = "GptGpt"
+        self._model_name = "GptMed"
         self._config = get_model_config(self._model_name)
         self._load_model()
     
     def _load_model(self):
         """
-        Load the custom GPT model and tokenizer using gptgpt package.
+        Load the custom GPT model and tokenizer using gptmed package.
         Private method following encapsulation principle.
         """
         try:
-            model_path = Path(self._config["model_path"]) / "gptgpt_model.pt"
-            tokenizer_path = Path(self._config["model_path"]) / "gptgpt_tokenizer.model"
+            model_path = Path(self._config["model_path"]) / "gptmed_model.pt"
+            tokenizer_path = Path(self._config["model_path"]) / "gptmed_tokenizer.model"
             
             # Check if files exist
             if not model_path.exists():
@@ -55,7 +55,7 @@ class GptGptService(BaseModelService):
             # Load checkpoint
             checkpoint = torch.load(model_path, map_location=self._device)
             
-            # Reconstruct model from saved config using gptgpt package
+            # Reconstruct model from saved config using gptmed package
             model_config = ModelConfig(**checkpoint['model_config'])
             model = GPTTransformer(model_config)
             model.load_state_dict(checkpoint['model_state_dict'])
@@ -66,14 +66,14 @@ class GptGptService(BaseModelService):
             tokenizer = spm.SentencePieceProcessor()
             tokenizer.load(str(tokenizer_path))
             
-            # Create generator using gptgpt package
+            # Create generator using gptmed package
             self._generator = TextGenerator(
                 model=model,
                 tokenizer=tokenizer,
                 device=self._device
             )
             
-            print(f"✓ Successfully loaded {self._model_name} using gptgpt package")
+            print(f"✓ Successfully loaded {self._model_name} using gptmed package")
             print(f"  - Trained steps: {checkpoint.get('step', 'unknown')}")
             print(f"  - Validation loss: {checkpoint.get('val_loss', 'unknown'):.4f}")
             print(f"  - Device: {self._device}")
@@ -86,7 +86,7 @@ class GptGptService(BaseModelService):
     
     def generate(self, prompt: str) -> Dict[str, str]:
         """
-        Generate text using custom GptGpt model via gptgpt package.
+        Generate text using custom GptMed model via gptmed package.
         
         Args:
             prompt: Input text prompt
@@ -101,7 +101,7 @@ class GptGptService(BaseModelService):
                     "response": f"Model {self._model_name} failed to load or is not available"
                 }
             
-            # Use the generator from gptgpt package
+            # Use the generator from gptmed package
             # Conservative generation settings for quality
             gen_config = GenerationConfig(
                 max_length=150,

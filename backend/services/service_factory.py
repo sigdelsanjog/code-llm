@@ -12,7 +12,7 @@ from .base_service import BaseModelService
 from .distilgpt2_service import DistilGPT2Service
 from .gpt2_tiny_service import GPT2TinyService
 from .t5_tiny_service import T5TinyService
-from .gptgpt_service import GptGptService
+from .gptmed_service import GptMedService
 
 
 class ServiceFactory:
@@ -29,7 +29,7 @@ class ServiceFactory:
         "DistilGPT2": DistilGPT2Service,
         "GPT2-Tiny": GPT2TinyService,
         "T5-Tiny": T5TinyService,
-        "GptGpt": GptGptService
+        "GptMed": GptMedService
     }
     
     @classmethod
