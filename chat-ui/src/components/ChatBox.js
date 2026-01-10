@@ -114,6 +114,7 @@ const ChatBox = () => {
                   <tr>
                     <th>Model Name</th>
                     <th>Response</th>
+                    <th>Reference Answer (Ground Truth)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -123,6 +124,20 @@ const ChatBox = () => {
                         <td className="model-name">{modelResponse.model}</td>
                         <td className="model-response">
                           {modelResponse.response}
+                        </td>
+                        <td className="reference-answer">
+                          {modelResponse.reference_answer ? (
+                            <div className="reference-content">
+                              <span className="reference-label">
+                                ✓ From Training Data:
+                              </span>
+                              <p>{modelResponse.reference_answer}</p>
+                            </div>
+                          ) : (
+                            <span className="no-reference">
+                              No reference answer found
+                            </span>
+                          )}
                         </td>
                       </tr>
                     ))}

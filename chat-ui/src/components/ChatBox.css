@@ -1,5 +1,5 @@
 .chat-container {
-   max-width: 800px;
+   max-width: 1200px;
    margin: auto;
    text-align: left;
    font-family: Arial, sans-serif;
@@ -126,6 +126,42 @@ button:disabled {
    padding: 8px;
    border-radius: 3px;
    border: 1px solid #e9ecef;
+}
+
+.reference-answer {
+   background-color: #f0fff4;
+   padding: 8px;
+   border-radius: 3px;
+   border: 1px solid #c6f6d5;
+   min-width: 250px;
+}
+
+.reference-content {
+   display: flex;
+   flex-direction: column;
+   gap: 5px;
+}
+
+.reference-label {
+   font-weight: bold;
+   color: #2f855a;
+   font-size: 12px;
+   text-transform: uppercase;
+}
+
+.reference-content p {
+   margin: 0;
+   font-family: 'Courier New', monospace;
+   white-space: pre-wrap;
+   word-wrap: break-word;
+   color: #276749;
+   font-size: 14px;
+}
+
+.no-reference {
+   color: #718096;
+   font-style: italic;
+   font-size: 14px;
 }
 
 .error {

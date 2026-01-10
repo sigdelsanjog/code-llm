@@ -28,6 +28,7 @@ class PromptRequest(BaseModel):
 class ModelResponse(BaseModel):
     model: str
     response: str
+    reference_answer: Optional[str] = None  # Ground truth from training data
 
 class GeneratedCodeResponse(BaseModel):
     prompt: str
@@ -56,7 +57,11 @@ async def generate_code(request: PromptRequest):
             # Inject single service for specific model
             service = ServiceFactory.get_service(request.model_name)
             result = service.generate(request.prompt)
-            model_responses = [ModelResponse(model=result["model"], response=result["response"])]
+            model_responses = [ModelResponse(
+                model=result["model"], 
+                response=result["response"],
+                reference_answer=result.get("reference_answer")
+            )]
             formatted_response = f"**{result['model']} Response:**\n{result['response']}\n"
         else:
             # Inject all services for "All Models" option
@@ -78,7 +83,11 @@ async def generate_code(request: PromptRequest):
                     try:
                         result = future.result()
                         model_responses.append(
-                            ModelResponse(model=result["model"], response=result["response"])
+                            ModelResponse(
+                                model=result["model"], 
+                                response=result["response"],
+                                reference_answer=result.get("reference_answer")
+                            )
                         )
                         formatted_paragraphs.append(
                             f"**{result['model']} Response:**\n{result['response']}\n"
@@ -90,7 +99,11 @@ async def generate_code(request: PromptRequest):
                             "response": f"Error: {str(e)}"
                         }
                         model_responses.append(
-                            ModelResponse(model=error_result["model"], response=error_result["response"])
+                            ModelResponse(
+                                model=error_result["model"], 
+                                response=error_result["response"],
+                                reference_answer=None
+                            )
                         )
                         formatted_paragraphs.append(
                             f"**{error_result['model']} Response:**\n{error_result['response']}\n"

@@ -20,6 +20,7 @@ from gptmed.inference.generation_config import GenerationConfig
 import sentencepiece as spm
 
 from .base_service import BaseModelService
+from .reference_lookup import get_gptmed_reference_lookup
 from config import get_model_config
 
 
@@ -92,13 +93,18 @@ class GptMedService(BaseModelService):
             prompt: Input text prompt
             
         Returns:
-            Dictionary with model name and generated response
+            Dictionary with model name, generated response, and reference answer
         """
         try:
+            # Look up reference answer from training data
+            reference_lookup = get_gptmed_reference_lookup()
+            reference_answer = reference_lookup.find_reference_answer(prompt)
+            
             if not self.is_loaded():
                 return {
                     "model": self._model_name,
-                    "response": f"Model {self._model_name} failed to load or is not available"
+                    "response": f"Model {self._model_name} failed to load or is not available",
+                    "reference_answer": reference_answer
                 }
             
             # Use the generator from gptmed package
@@ -120,15 +126,26 @@ class GptMedService(BaseModelService):
             
             return {
                 "model": self._model_name,
-                "response": generated_text
+                "response": generated_text,
+                "reference_answer": reference_answer
             }
             
         except Exception as e:
             import traceback
             traceback.print_exc()
+            
+            # Still try to get reference answer even on error
+            reference_answer = None
+            try:
+                reference_lookup = get_gptmed_reference_lookup()
+                reference_answer = reference_lookup.find_reference_answer(prompt)
+            except:
+                pass
+            
             return {
                 "model": self._model_name,
-                "response": f"Error generating with {self._model_name}: {str(e)}"
+                "response": f"Error generating with {self._model_name}: {str(e)}",
+                "reference_answer": reference_answer
             }
     
     def get_model_name(self) -> str:
