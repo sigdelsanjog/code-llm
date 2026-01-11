@@ -1,0 +1,39 @@
+# GPTMed Training Configuration
+# This is a working example that points to the existing medllm data
+
+model:
+  size: small  # Options: tiny, small, medium
+
+data:
+  # These paths point to the tokenized MedQuAD data in the medllm folder
+  train_data: train.npy
+  val_data: val.npy
+
+training:
+  num_epochs: 10
+  batch_size: 16
+  learning_rate: 0.0003
+  weight_decay: 0.01
+  grad_clip: 1.0
+  warmup_steps: 100
+
+optimizer:
+  betas: [0.9, 0.95]
+  eps: 1.0e-08
+
+checkpointing:
+  checkpoint_dir: ./model/checkpoints
+  save_every: 1
+  keep_last_n: 3
+
+logging:
+  log_dir: ./logs
+  eval_every: 100
+  log_every: 10
+
+device:
+  device: cuda  # Change to 'cpu' if you don't have GPU
+  seed: 42
+
+advanced:
+  max_steps: -1  # -1 for full training, or set a number for early stopping
