@@ -1,6 +1,6 @@
 filelock==3.20.3
 fsspec==2026.1.0
-gptmed==0.3.2
+gptmed==0.3.5
 Jinja2==3.1.6
 MarkupSafe==3.0.3
 mpmath==1.3.0

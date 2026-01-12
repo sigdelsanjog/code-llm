@@ -1,17 +1,8 @@
-# GPTMed API Runner
+# GPTMed API Testing Guide
 
-This folder contains an easy-to-use interface for training and using GPTMed models through the high-level `gptmed.api` module.
+This guide walks you through testing the GPTMed package using the high-level API.
 
-## Overview
-
-The `run_gptmed.py` script provides a simple command-line interface that wraps the GPTMed API, making it easy to:
-
-- Create training configuration files
-- Train models with a single command
-- Generate text from trained models
-- Use models in interactive mode
-
-## Installation
+## Prerequisites
 
 Install the gptmed package from PyPI:
 
@@ -19,259 +10,200 @@ Install the gptmed package from PyPI:
 pip install gptmed
 ```
 
-This will install the latest version of gptmed with the high-level API.
-
-## Quick Start
-
-### Using the Pre-configured Example
-
-We provide a ready-to-use configuration that points to the existing MedQuAD data:
+Or install from local source in editable mode:
 
 ```bash
-# Train with the example configuration
-python run_gptmed.py train --config example_config.yaml
+pip install -e ../gptmed
 ```
 
-The `example_config.yaml` already has the correct paths:
+## Quick Start - Test the Complete Workflow
 
-- Training data: `train.npy` (6,473 samples)
-- Validation data: `val.npy` (720 samples)
-- Tokenizer: `medquad_tokenizer.model`
+### Step 1: Generate a Configuration File
 
-**See [DATA_GUIDE.md](DATA_GUIDE.md) for details about the data files.**
-
-## Usage
-
-### 1. Create a Training Configuration
+Create a training configuration file:
 
 ```bash
 python run_gptmed.py create-config --output my_config.yaml
 ```
 
-This creates a default YAML configuration file that you can edit with your training settings.
+This creates a default YAML configuration file that you can customize.
 
-### 2. Edit the Configuration
+### Step 2: Edit the Configuration
 
-Open `my_config.yaml` and customize:
-
-- Model size (tiny, small, medium)
-- **Training data paths** - Update to point to your tokenized .npy files:
-  - For MedQuAD data: `../medllm/data/tokenized/train.npy` and `val.npy`
-  - For custom data: See [DATA_GUIDE.md](DATA_GUIDE.md)
-- Hyperparameters (learning rate, batch size, etc.)
-- Output directories
-
-**Example:**
+Open `my_config.yaml` and update the data paths to point to your tokenized data files:
 
 ```yaml
 data:
-  train_data: ../medllm/data/tokenized/train.npy
-  val_data: ../medllm/data/tokenized/val.npy
+  train_data: train.npy
+  val_data: val.npy
 ```
 
-### 3. Train a Model
+The `train.npy` and `val.npy` files are already included in this directory.
+
+### Step 3: Train the Model
+
+Start training with your configuration:
 
 ```bash
 python run_gptmed.py train --config my_config.yaml
 ```
 
 This will:
-
-- Load your configuration
-- Create and initialize the model
+- Load the configuration
+- Initialize the model based on the specified size
 - Train on your data
-- Save checkpoints automatically
-- Display training progress
+- Save checkpoints to `./checkpoints/`
+- Log metrics to `./logs/`
 
-### 4. Generate Text
+**Note**: Training on CPU will be slow. For faster training, use a GPU-enabled machine.
 
-Once trained, generate text using your model:
+### Step 4: Test Answer Generation
+
+Once training is complete, test the model's ability to generate answers:
 
 ```bash
 python run_gptmed.py generate \
-    --checkpoint ../gptmed/model/checkpoints/best_model.pt \
-    --tokenizer ../medllm/tokenizer/medquad_tokenizer.model \
+    --checkpoint checkpoints/best_model.pt \
+    --tokenizer medquad_tokenizer.model \
     --prompt "What is diabetes?" \
-    --max-length 150 \
-    --temperature 0.7
+    --device cpu
 ```
 
-### 5. Interactive Mode
+You can customize generation parameters:
 
-For a more interactive experience:
+```bash
+python run_gptmed.py generate \
+    --checkpoint checkpoints/best_model.pt \
+    --tokenizer medquad_tokenizer.model \
+    --prompt "What are the symptoms of high blood pressure?" \
+    --max-length 200 \
+    --temperature 0.8 \
+    --top-k 50 \
+    --top-p 0.9 \
+    --device cpu
+```
+
+### Step 5: Interactive Mode (Optional)
+
+For a conversational experience:
 
 ```bash
 python run_gptmed.py interactive \
-    --checkpoint ../gptmed/model/checkpoints/best_model.pt \
-    --tokenizer ../medllm/tokenizer/medquad_tokenizer.model \
-    --max-length 150
+    --checkpoint checkpoints/best_model.pt \
+    --tokenizer medquad_tokenizer.model \
+    --device cpu
 ```
 
-This opens an interactive prompt where you can ask multiple questions without reloading the model each time.
+Type your questions and get answers in real-time. Type `quit` or `exit` to stop.
 
-## Command Reference
+## Configuration Options
 
-### create-config
+The configuration file supports these main sections:
 
-Create a default training configuration file.
+### Model Settings
+```yaml
+model:
+  size: small  # Options: tiny, small, medium
+```
+
+### Data Paths
+```yaml
+data:
+  train_data: train.npy
+  val_data: val.npy
+```
+
+### Training Parameters
+```yaml
+training:
+  num_epochs: 10
+  batch_size: 16
+  learning_rate: 0.0003
+  weight_decay: 0.01
+  grad_clip: 1.0
+  warmup_steps: 100
+```
+
+### Device Settings
+```yaml
+device:
+  device: cuda  # or 'cpu'
+  seed: 42
+```
+
+### Checkpointing
+```yaml
+checkpointing:
+  checkpoint_dir: ./checkpoints
+  save_interval: 1
+  keep_last_n: 3
+```
+
+## Understanding Training Results
+
+After training, check the logs to evaluate performance:
 
 ```bash
-python run_gptmed.py create-config [--output PATH]
+# View training metrics
+tail -20 logs/gpt_training_metrics.jsonl
+
+# Check validation loss
+grep "val_loss" logs/gpt_training_metrics.jsonl
 ```
 
-Options:
+**Good performance indicators:**
+- Train loss: < 2.0 (ideally < 1.0)
+- Validation loss: < 3.0 (ideally < 2.0)
+- Perplexity: < 50
 
-- `--output`, `-o`: Output path for config file (default: training_config.yaml)
+**If results are poor:**
+- Train for more epochs (increase `num_epochs`)
+- Use more training data
+- Try a larger model size (`medium`)
+- Adjust learning rate
 
-### train
+## Files in This Directory
 
-Train a model from a configuration file.
-
-```bash
-python run_gptmed.py train --config PATH
-```
-
-Options:
-
-- `--config`, `-c`: Path to YAML configuration file (required)
-
-### generate
-
-Generate text using a trained model.
-
-```bash
-python run_gptmed.py generate \
-    --checkpoint PATH \
-    --tokenizer PATH \
-    --prompt TEXT \
-    [OPTIONS]
-```
-
-Required:
-
-- `--checkpoint`: Path to model checkpoint (.pt file)
-- `--tokenizer`: Path to tokenizer model (.model file)
-- `--prompt`, `-p`: Input text/question
-
-Optional:
-
-- `--max-length`: Maximum tokens to generate (default: 100)
-- `--temperature`: Sampling temperature, higher = more random (default: 0.7)
-- `--top-k`: Top-k sampling parameter (default: 50)
-- `--top-p`: Nucleus sampling parameter (default: 0.9)
-- `--device`: Device to use: cuda or cpu (default: cuda)
-
-### interactive
-
-Interactive text generation mode.
-
-```bash
-python run_gptmed.py interactive \
-    --checkpoint PATH \
-    --tokenizer PATH \
-    [OPTIONS]
-```
-
-Required:
-
-- `--checkpoint`: Path to model checkpoint (.pt file)
-- `--tokenizer`: Path to tokenizer model (.model file)
-
-Optional:
-
-- `--max-length`: Maximum tokens to generate (default: 100)
-- `--temperature`: Sampling temperature (default: 0.7)
-- `--top-k`: Top-k sampling (default: 50)
-- `--top-p`: Nucleus sampling (default: 0.9)
-- `--device`: Device to use: cuda or cpu (default: cuda)
-
-## Examples
-
-### Complete Workflow
-
-```bash
-# 1. Create configuration
-python run_gptmed.py create-config --output medical_config.yaml
-
-# 2. Edit medical_config.yaml with your settings
-# (Set data paths, model size, hyperparameters, etc.)
-
-# 3. Train the model
-python run_gptmed.py train --config medical_config.yaml
-
-# 4. Test generation
-python run_gptmed.py generate \
-    --checkpoint ../gptmed/model/checkpoints/best_model.pt \
-    --tokenizer ../medllm/tokenizer/medquad_tokenizer.model \
-    --prompt "What causes high blood pressure?"
-
-# 5. Use interactively
-python run_gptmed.py interactive \
-    --checkpoint ../gptmed/model/checkpoints/best_model.pt \
-    --tokenizer ../medllm/tokenizer/medquad_tokenizer.model
-```
-
-### Different Generation Settings
-
-```bash
-# More conservative generation (lower temperature)
-python run_gptmed.py generate \
-    --checkpoint model.pt \
-    --tokenizer tokenizer.model \
-    --prompt "Explain diabetes" \
-    --temperature 0.5
-
-# More creative generation (higher temperature)
-python run_gptmed.py generate \
-    --checkpoint model.pt \
-    --tokenizer tokenizer.model \
-    --prompt "Explain diabetes" \
-    --temperature 1.0
-
-# Longer response
-python run_gptmed.py generate \
-    --checkpoint model.pt \
-    --tokenizer tokenizer.model \
-    --prompt "Explain diabetes" \
-    --max-length 300
-```
-
-## Benefits of Using This API
-
-1. **Simplicity**: No need to write training loops or manage checkpoints manually
-2. **Configuration-based**: All settings in one YAML file, easy to version control
-3. **Flexible**: Supports different model sizes and hyperparameters
-4. **Interactive**: Test your model quickly with interactive mode
-5. **Production-ready**: Uses the same API as the main gptmed package
+- `run_gptmed.py` - Main script for testing the API
+- `train.npy` - Tokenized training data (6,473 samples)
+- `val.npy` - Tokenized validation data (720 samples)
+- `medquad_tokenizer.model` - Pre-trained tokenizer
+- `example_config.yaml` - Example configuration file
+- `checkpoints/` - Saved model checkpoints (created during training)
+- `logs/` - Training logs and metrics (created during training)
 
 ## Troubleshooting
 
-### Module not found error
-
-Make sure gptmed is installed from PyPI:
-
+### Import Error: No module named 'gptmed'
 ```bash
 pip install gptmed
 ```
 
-### CUDA out of memory
-
-Try:
-
-- Reducing batch size in config
-- Using a smaller model size
-- Using `--device cpu` for generation
-
-### Checkpoint not found
-
-Ensure the checkpoint path is correct. After training, the best model is saved at:
-
+### Import Error: No module named 'gptmed.services'
+The package version is outdated. Upgrade to v0.3.5 or later:
+```bash
+pip install --upgrade gptmed
 ```
-<checkpoint_dir>/best_model.pt
-```
+
+### Training is very slow
+This is expected on CPU. Consider:
+- Reducing batch size (e.g., `batch_size: 8`)
+- Using a smaller model (`size: tiny`)
+- Training on a GPU-enabled machine
+
+### Poor generation quality
+- Let training complete all epochs
+- Check if validation loss is decreasing
+- Ensure you have sufficient training data
+- Try different generation parameters (temperature, top_k, top_p)
 
 ## Next Steps
 
-- Visit [PyPI gptmed package](https://pypi.org/project/gptmed/) for more information
-- Check the gptmed documentation for comprehensive guides
-- Join the community for support and updates
+After testing the API:
+1. Prepare your own medical Q&A dataset
+2. Tokenize it using the gptmed tokenizer
+3. Train a larger model with more data
+4. Fine-tune generation parameters for your use case
+5. Deploy the model for production use
+
+For more information, see the main [gptmed documentation](../gptmed/README.md).
