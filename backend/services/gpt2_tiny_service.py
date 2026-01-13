@@ -10,7 +10,10 @@ Follows SOLID principles:
 from typing import Dict
 from transformers import pipeline
 from .base_service import BaseModelService
-from ..config import get_model_config
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config import get_model_config
 
 
 class GPT2TinyService(BaseModelService):

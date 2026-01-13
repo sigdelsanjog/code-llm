@@ -45,25 +45,25 @@ class Config:
         self.MODEL_CONFIGS: Dict[str, Dict[str, str]] = {
             "DistilGPT2": {
                 "task": "text-generation",
-                "model_path": "backend/models/distilgpt2",
+                "model_path": "models/distilgpt2",
                 "display_name": "DistilGPT2",
                 "description": "Distilled version of GPT2, faster and smaller"
             },
             "GPT2-Tiny": {
                 "task": "text-generation", 
-                "model_path": "backend/models/tiny-gpt2",
+                "model_path": "models/tiny-gpt2",
                 "display_name": "GPT2-Tiny",
                 "description": "Tiny GPT2 model for quick testing"
             },
             "T5-Tiny": {
                 "task": "text2text-generation",
-                "model_path": "backend/models/t5-efficient-tiny",
+                "model_path": "models/t5-efficient-tiny",
                 "display_name": "T5-Tiny",
                 "description": "Tiny T5 model for text-to-text generation"
             },
             "GptMed": {
                 "task": "text-generation",
-                "model_path": "backend/models/gptmed",
+                "model_path": "models/gptmed",
                 "display_name": "GptMed",
                 "description": "Custom GPT model trained using gptmed package"
             }
