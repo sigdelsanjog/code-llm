@@ -21,7 +21,7 @@ import sentencepiece as spm
 
 from .base_service import BaseModelService
 from .reference_lookup import get_gptmed_reference_lookup
-from config import get_model_config
+from ..config import get_model_config
 
 
 class GptMedService(BaseModelService):
@@ -33,7 +33,9 @@ class GptMedService(BaseModelService):
     def __init__(self):
         """Initialize the GptMed service and load the model."""
         self._generator = None
-        self._device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        # Force CPU since GTX 1060 (sm_61) is incompatible with PyTorch 2.9.1
+        # PyTorch 2.9.1 requires CUDA capability >= sm_70
+        self._device = 'cpu'  # Can be overridden to 'cuda' if compatible GPU available
         self._model_name = "GptMed"
         self._config = get_model_config(self._model_name)
         self._load_model()
@@ -57,15 +59,29 @@ class GptMedService(BaseModelService):
             checkpoint = torch.load(model_path, map_location=self._device)
             
             # Reconstruct model from saved config using gptmed package
-            model_config = ModelConfig(**checkpoint['model_config'])
+            model_config_data = checkpoint.get("model_config")
+            if model_config_data is None:
+                raise KeyError("Checkpoint missing required key: 'model_config'")
+
+            # gptmed checkpoints typically store a dict from ModelConfig.to_dict()
+            model_config = (
+                ModelConfig.from_dict(model_config_data)
+                if isinstance(model_config_data, dict)
+                else ModelConfig(**model_config_data)
+            )
             model = GPTTransformer(model_config)
-            model.load_state_dict(checkpoint['model_state_dict'])
+            state_dict = checkpoint.get("model_state_dict")
+            if state_dict is None:
+                raise KeyError("Checkpoint missing required key: 'model_state_dict'")
+
+            model.load_state_dict(state_dict)
             model.to(self._device)
             model.eval()
             
             # Load tokenizer
             tokenizer = spm.SentencePieceProcessor()
-            tokenizer.load(str(tokenizer_path))
+            # SentencePiece uses Load() (capital L)
+            tokenizer.Load(str(tokenizer_path))
             
             # Create generator using gptmed package
             self._generator = TextGenerator(
@@ -75,8 +91,13 @@ class GptMedService(BaseModelService):
             )
             
             print(f"✓ Successfully loaded {self._model_name} using gptmed package")
-            print(f"  - Trained steps: {checkpoint.get('step', 'unknown')}")
-            print(f"  - Validation loss: {checkpoint.get('val_loss', 'unknown'):.4f}")
+            trained_steps = checkpoint.get("step")
+            val_loss = checkpoint.get("val_loss")
+            print(f"  - Trained steps: {trained_steps if trained_steps is not None else 'unknown'}")
+            if isinstance(val_loss, (int, float)):
+                print(f"  - Validation loss: {val_loss:.4f}")
+            else:
+                print("  - Validation loss: unknown")
             print(f"  - Device: {self._device}")
             
         except Exception as e:
