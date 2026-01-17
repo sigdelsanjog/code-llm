@@ -109,6 +109,37 @@ class GptMedService(BaseModelService):
             traceback.print_exc()
             self._generator = None
     
+    def _normalize_prompt(self, prompt: str) -> str:
+        """
+        Normalize user prompt to match training data format.
+        
+        Training data uses format: "Q: What is (are) X ?" or "Q: What are the symptoms of X ?"
+        """
+        import re
+        
+        # Remove leading/trailing whitespace
+        prompt = prompt.strip()
+        
+        # If already starts with Q:, keep it
+        if prompt.upper().startswith("Q:"):
+            return prompt
+        
+        # Common corrections for question format
+        # "Who are" -> "What are" (common typo)
+        prompt = re.sub(r'^[Ww]ho\s+are', 'What are', prompt)
+        
+        # Add "Q: " prefix if not present
+        if not prompt.startswith("Q:"):
+            prompt = f"Q: {prompt}"
+        
+        # Ensure question mark with space before it (training data style)
+        if not prompt.endswith("?"):
+            prompt = prompt.rstrip(".") + " ?"
+        elif prompt.endswith("?") and not prompt.endswith(" ?"):
+            prompt = prompt[:-1] + " ?"
+        
+        return prompt
+
     def generate(self, prompt: str) -> Dict[str, str]:
         """
         Generate text using custom GptMed model via gptmed package.
@@ -120,6 +151,9 @@ class GptMedService(BaseModelService):
             Dictionary with model name, generated response, and reference answer
         """
         try:
+            # Normalize prompt to match training data format
+            normalized_prompt = self._normalize_prompt(prompt)
+            
             # Look up reference answer from training data
             reference_lookup = get_gptmed_reference_lookup()
             reference_answer = reference_lookup.find_reference_answer(prompt)
@@ -134,19 +168,27 @@ class GptMedService(BaseModelService):
             # Use the generator from gptmed package
             # Conservative generation settings for quality
             gen_config = GenerationConfig(
-                max_length=150,
-                temperature=0.6,  # Conservative for quality
-                top_k=40,
-                top_p=0.9,
-                repetition_penalty=1.2,
+                max_length=200,  # Increased for longer answers
+                temperature=0.5,  # Lower for more deterministic output
+                top_k=30,         # More focused sampling
+                top_p=0.85,
+                repetition_penalty=1.3,
                 no_repeat_ngram_size=3
             )
             
             generated_text = self._generator.generate(
-                prompt=prompt,
+                prompt=normalized_prompt,
                 gen_config=gen_config,
                 verbose=False
             )
+            
+            # Clean up output - remove the prompt from response if echoed
+            if generated_text.startswith(normalized_prompt):
+                generated_text = generated_text[len(normalized_prompt):].strip()
+            
+            # Remove "A: " prefix if present
+            if generated_text.startswith("A:"):
+                generated_text = generated_text[2:].strip()
             
             return {
                 "model": self._model_name,

@@ -17,7 +17,7 @@ optimizer:
   eps: 1.0e-08
 checkpointing:
   checkpoint_dir: ./checkpoints
-  save_interval: 10
+  save_interval: 100
   keep_last_n: 3
 logging:
   log_dir: ./logs
@@ -27,6 +27,6 @@ device:
   device: cuda
   seed: 42
 advanced:
-  max_steps: -1
-  resume_from: null
+  max_steps: 14000
+  resume_from: ./checkpoints/final_model.pt
   quick_test: false
