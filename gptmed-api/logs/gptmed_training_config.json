@@ -3,9 +3,9 @@
   "device": "cuda",
   "batch_size": 16,
   "learning_rate": 0.0003,
-  "num_epochs": 10,
-  "max_steps": -1,
-  "total_steps": 4040,
+  "num_epochs": 20,
+  "max_steps": 20000,
+  "total_steps": 20000,
   "warmup_steps": 100,
   "grad_clip": 1.0,
   "weight_decay": 0.01

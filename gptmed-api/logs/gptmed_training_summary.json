@@ -1,0 +1,24 @@
+{
+  "experiment_name": "gptmed_training",
+  "total_steps": 20000,
+  "total_time_seconds": 1786.5769731998444,
+  "final_train_loss": 1.9258677959442139,
+  "final_val_loss": 2.2355983522203235,
+  "best_val_loss": 2.2355983522203235,
+  "best_val_step": 19800,
+  "final_perplexity": 6.861100118057963,
+  "config": {
+    "model_size": "unknown",
+    "device": "cuda",
+    "batch_size": 16,
+    "learning_rate": 0.0003,
+    "num_epochs": 20,
+    "max_steps": 20000,
+    "total_steps": 20000,
+    "warmup_steps": 100,
+    "grad_clip": 1.0,
+    "weight_decay": 0.01
+  },
+  "final_epoch": 19,
+  "final_checkpoint": "checkpoints/final_model.pt"
+}
