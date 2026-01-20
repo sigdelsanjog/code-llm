@@ -3,8 +3,11 @@ model:
 data:
   train_data: train.npy
   val_data: val.npy
+device:
+  device: cuda
+  seed: 42
 training:
-  num_epochs: 20
+  num_epochs: 10
   batch_size: 16
   learning_rate: 0.0003
   weight_decay: 0.01
@@ -23,9 +26,13 @@ logging:
   log_dir: ./logs
   eval_interval: 200
   log_interval: 10
-device:
-  device: cuda
-  seed: 42
+# Enable Redis metrics storage for training
+redis:
+  enabled: true
+  host: localhost
+  port: 6379
+  db: 0
+  password: null
 advanced:
   max_steps: 20000
   resume_from: ./checkpoints/final_model.pt

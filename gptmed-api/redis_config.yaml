@@ -1,0 +1,7 @@
+# Enable Redis metrics storage for training
+redis:
+  enabled: true
+  host: localhost
+  port: 6379
+  db: 0
+  password: null
